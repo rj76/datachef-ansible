@@ -13,8 +13,8 @@
       tags: ['jenkins']
     - role: letsencrypt
       tags: ['letsencrypt']
-#    - role: postgres
-#      tags: ['postgres']
+    - role: postgres
+      tags: ['postgres']
     - role: supervisor
       tags: ['supervisor']
     - role: nginx

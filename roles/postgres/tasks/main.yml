@@ -4,40 +4,5 @@
     state: present
   notify: start postgres
 
-- name: "create database role for {{ DB_USER }}"
-  become: true
-  become_user: postgres
-  postgresql_user:
-    name: "{{ DB_USER }}"
-    password: "{{ DB_PASSWD }}"
-    role_attr_flags: "CREATEDB,SUPERUSER,LOGIN"
-    encrypted: yes
-
-- name: create database role for jenkins
-  become: true
-  become_user: postgres
-  postgresql_user:
-    name: "jenkins"
-    password: "{{ DB_PASSWD_JENKINS }}"
-    role_attr_flags: "LOGIN,SUPERUSER"
-    encrypted: yes
-
-- name: create database
-  become: true
-  become_user: postgres
-  postgresql_db:
-    name: "{{ DB_NAME }}"
-    encoding: UTF-8
-    template: template1
-    owner: "{{ DB_USER }}"
-
-- name: create postgis extension
-  become: true
-  become_user: postgres
-  postgresql_ext:
-    login_user: postgres
-    name: postgis
-    db: "{{ DB_NAME }}"
-
 - name: start and enable postgres server
   service: name=postgresql state=started enabled=yes

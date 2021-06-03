@@ -1,0 +1,91 @@
+upstream app_server {
+    server {{ DAPHNE_HOST }}:{{ DAPHNE_PORT }} fail_timeout=0;
+}
+
+map $http_user_agent $limit_bots {
+      default 0;
+      ~*(google|bing|yandex|msnbot|Baiduspider) 1;
+      ~*(AltaVista|Googlebot|Slurp|BlackWidow|Bot|ChinaClaw|Custo|DISCo|Download|Demon|eCatch|EirGrabber|EmailSiphon|EmailWolf|SuperHTTP|Surfbot|WebWhacker) 1;
+      ~*(Express|WebPictures|ExtractorPro|EyeNetIE|FlashGet|GetRight|GetWeb!|Go!Zilla|Go-Ahead-Got-It|GrabNet|Grafula|HMView|Go!Zilla|Go-Ahead-Got-It) 1;
+      ~*(rafula|HMView|HTTrack|Stripper|Sucker|Indy|InterGET|Ninja|JetCar|Spider|larbin|LeechFTP|Downloader|tool|Navroad|NearSite|NetAnts|tAkeOut|WWWOFFLE) 1;
+      ~*(GrabNet|NetSpider|Vampire|NetZIP|Octopus|Offline|PageGrabber|Foto|pavuk|pcBrowser|RealDownload|ReGet|SiteSnagger|SmartDownload|SuperBot|WebSpider) 1;
+      ~*(Teleport|VoidEYE|Collector|WebAuto|WebCopier|WebFetch|WebGo|WebLeacher|WebReaper|WebSauger|eXtractor|Quester|WebStripper|WebZIP|Wget|Widow|Zeus) 1;
+      ~*(Twengabot|htmlparser|libwww|Python|perl|urllib|scan|Curl|email|PycURL|Pyth|PyQ|WebCollector|WebCopy|webcraw) 1;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name {{ DATACHEF_HOSTNAME }};
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+
+    server_name {{ DATACHEF_HOSTNAME }};
+
+    root /var/www/datachef_assessment;
+
+    keepalive_timeout 5;
+
+    ssl_certificate     /etc/letsencrypt/live/{{ DATACHEF_HOSTNAME }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ DATACHEF_HOSTNAME }}/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    location ~ \.(aspx|php|jsp|cgi)$ {
+      return 410;
+    }
+
+    location /.well-known {
+        alias /var/www/datachef/.well-known;
+    }
+
+    location /media/ {
+        # if asset versioning is used
+        if ($query_string) {
+            expires max;
+        }
+        alias /var/www/datachef_assessment/media/;
+    }
+
+    location /static/ {
+        # if asset versioning is used
+        if ($query_string) {
+            expires max;
+        }
+        expires 0;
+        alias /var/www/datachef_assessment/static/;
+    }
+
+    location / {
+        if ($limit_bots = 1) {
+           return 403;
+        }
+
+        client_max_body_size       10m;
+        client_body_buffer_size    128k;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+
+        proxy_redirect off;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $server_name;
+
+        proxy_set_header X-Scheme $scheme;
+        proxy_set_header Authorization $http_authorization;
+        proxy_pass_header Authorization;
+        proxy_pass_header Server;
+        proxy_pass_header X-CSRF-TOKEN;
+        proxy_pass_header X-CSRFTOKEN;
+        proxy_connect_timeout 300;
+        proxy_read_timeout 300;
+        proxy_pass http://app_server;
+    }
+}

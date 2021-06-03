@@ -1,0 +1,11 @@
+- name: install supervisor
+  apt: name=supervisor state=present
+
+- name: copy supervisor configs
+  template: src={{ item }} dest=/etc/supervisor/conf.d/{{ item }}
+  with_items:
+    - daphne.conf
+  notify: update supervisor
+
+- name: start supervisor
+  service: name=supervisor state=started enabled=yes

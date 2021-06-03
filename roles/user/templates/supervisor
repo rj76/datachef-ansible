@@ -1,0 +1,2 @@
+{{ NORMAL_USER_NAME }} ALL = (root) NOPASSWD:/usr/bin/supervisorctl *
+jenkins ALL = (root) NOPASSWD:/usr/bin/supervisorctl *

@@ -1,0 +1,11 @@
+- name: start supervisor
+  service: name=supervisor state=started enabled=true
+
+- name: update supervisor
+  command: supervisorctl update
+
+- name: restartall supervisor
+  command: supervisorctl restart all
+
+- name: restart supervisor
+  service: name=supervisor state=restarted

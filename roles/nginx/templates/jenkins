@@ -1,0 +1,36 @@
+upstream app_server_jenkins {
+    server 127.0.0.1:8080 fail_timeout=0;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name {{ JENKINS_HOSTNAME }};
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443;
+    server_name {{ JENKINS_HOSTNAME }};
+
+    ssl_certificate     /etc/letsencrypt/live/{{ JENKINS_HOSTNAME }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ JENKINS_HOSTNAME }}/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    location /.well-known {
+        alias /var/www/pedroja.tech/.well-known;
+    }
+
+    location / {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+
+        if (!-f $request_filename) {
+            proxy_pass http://app_server_jenkins;
+            break;
+        }
+    }
+}

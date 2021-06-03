@@ -1,0 +1,21 @@
+- name: provision AWS EC2 instance
+  become: yes
+  vars:
+    live: false
+  hosts:
+    - aws
+  roles:
+    - role: user
+      tags: ['user']
+    - role: base
+      tags: ['base']
+    - role: jenkins
+      tags: ['jenkins']
+    - role: letsencrypt
+      tags: ['letsencrypt']
+#    - role: postgres
+#      tags: ['postgres']
+    - role: supervisor
+      tags: ['supervisor']
+    - role: nginx
+      tags: ['nginx']

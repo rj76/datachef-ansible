@@ -1,0 +1,29 @@
+- name: add apt key
+  apt_key:
+    url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+    state: present
+
+- name: add repository
+  apt_repository:
+    repo: deb http://pkg.jenkins.io/debian-stable binary/
+    state: present
+
+- name: update the apt cache and install package
+  apt:
+    name: jenkins
+    state: present
+    update_cache: yes
+
+- name: disable DNSMultiCast
+  lineinfile: dest=/etc/default/jenkins
+              regexp='JAVA_ARGS='
+              line='JAVA_ARGS="-Djava.awt.headless=true -Dhudson.DNSMultiCast.disabled=true"'
+              state=present
+  notify: restart jenkins
+
+- name: only listen on localhost
+  lineinfile: dest=/etc/default/jenkins
+              regexp='JENKINS_ARGS='
+              line='JENKINS_ARGS="--webroot=/var/cache/$NAME/war --httpPort=$HTTP_PORT --httpListenAddress=127.0.0.1"'
+              state=present
+  notify: restart jenkins

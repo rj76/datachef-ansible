@@ -5,6 +5,7 @@
   template: src={{ item }} dest=/etc/supervisor/conf.d/{{ item }}
   with_items:
     - daphne.conf
+    - locust.conf
   notify: update supervisor
 
 - name: start supervisor

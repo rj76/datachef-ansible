@@ -16,10 +16,10 @@
   template: src=nginx.conf dest=/etc/nginx/nginx.conf
   notify: restart nginx
 
-- name: add datachef config
-  template: src=datachef dest=/etc/nginx/sites-enabled/datachef
+- name: copy site configs
+  template: src={{ item }} dest=/etc/nginx/sites-enabled/{{ item }}
+  with_items:
+    - datachef
+    - jenkins
+    - locust
   notify: reload nginx
-
-- name: add jenkins config
-  template: src=jenkins dest=/etc/nginx/sites-enabled/jenkins
-  notify: restart nginx

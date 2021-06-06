@@ -1,10 +1,3 @@
-# - apt_repository:
-#     repo: ppa:certbot/certbot
-
-# - name: update the apt cache
-#   apt:
-#     name: yes
-
 - name: install packages
   apt:
     name: ['certbot', 'python3-certbot-nginx']
@@ -19,3 +12,8 @@
   command: "certbot certonly -n {{ CERTBOT_STAGING_FLAG }} --nginx -m {{ CERTBOT_EMAIL }} -d {{ JENKINS_HOSTNAME }} --agree-tos"
   args:
     creates: "/etc/letsencrypt/live/{{ JENKINS_HOSTNAME }}/"
+
+- name: "create cert for {{ LOCUST_HOSTNAME }}"
+  command: "certbot certonly -n {{ CERTBOT_STAGING_FLAG }} --nginx -m {{ CERTBOT_EMAIL }} -d {{ LOCUST_HOSTNAME }} --agree-tos"
+  args:
+    creates: "/etc/letsencrypt/live/{{ LOCUST_HOSTNAME }}/"
